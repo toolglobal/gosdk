@@ -12,7 +12,7 @@
 ### REST-API SDK
 |      方法      |            功能            |  备注  |
 | -------------- | -------------------------- | ----- |
-| GenKey         | 生成OLO以及基于OLO的代币账户 | 不上链，此接口公网调用不安全 |
+| GenKey         | 生成OLO以及基于OLO的代币账户 |  |
 | ValidAddress   | 检查是否式合法的OLO地址      |       |
 | ValidPublicKey | 检查是否式合法的OLO公钥      |       |
 | Exist          | 检查账户是否已在链上存在     |       |
@@ -33,5 +33,5 @@
 | BuildEvmTx                | 生成EVM交易                    |       |
 | SendEvmTx                | 发送EVM交易                    |       |
 | CheckTx                | 检查交易是否上链并处理成功                    |       |
-| CheckTxWithCtx                | 检查交易是否上链并处理成功，待超时context                    |       |
+| CheckTxWithCtx                | 检查交易是否上链并处理成功                    |       |
 
