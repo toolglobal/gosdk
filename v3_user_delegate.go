@@ -16,7 +16,7 @@ import (
 // receiverAddress:抵押时必填抵押节点地址
 // opValue：操作金额，抵押时为抵押金额，赎回时不填，领取收益时为领取收益金额
 // 返回hash和错误信息
-func (api *APISDK) Delegate(publicKey, privateKey, receiverAddress string, opType uint8, opValue string) (string, error) {
+func (cli *APIClient) Delegate(publicKey, privateKey, receiverAddress string, opType uint8, opValue string) (string, error) {
 	var (
 		hash string
 		err  error
@@ -24,7 +24,7 @@ func (api *APISDK) Delegate(publicKey, privateKey, receiverAddress string, opTyp
 	var bean DelegateTx
 	bean.CreatedAt = uint64(time.Now().Unix())
 	bean.Sender = publicKey
-	bean.Nonce = api.GetNonce(publicKey)
+	bean.Nonce = cli.GetNonce(publicKey)
 	bean.OpType = opType
 	bean.OpValue = opValue
 	bean.Receiver = receiverAddress
@@ -53,7 +53,7 @@ func (api *APISDK) Delegate(publicKey, privateKey, receiverAddress string, opTyp
 			Tx string `json:"tx"`
 		} `json:"result"`
 	}
-	if err = httpc.New(api.baseUrl).Path("/v3/delegate").
+	if err = httpc.New(cli.addr).Path("/v3/delegate").
 		ContentType(httpc.TypeApplicationJson).
 		Body(&bean).Post(&resp); err != nil {
 		return hash, err

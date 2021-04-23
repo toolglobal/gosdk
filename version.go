@@ -1,3 +1,3 @@
 package gosdk
 
-const VERSION = "gosdk-v1.2.3"
+const VERSION = "gosdk-v1.2.4"

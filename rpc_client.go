@@ -13,25 +13,27 @@ import (
 	"time"
 )
 
-type RPCSDK struct {
+type RPCClient struct {
 	rpcClient *http.HTTP
 }
 
-func NewRPCSDK(remote string) *RPCSDK {
+// NewRPCClient
+// new tendermint rpc client,remote is tendermint rpc address,like 127.0.0.1:26657
+func NewRPCClient(remote string) *RPCClient {
 	cli, err := http.New("http://"+remote, "/websocket")
 	if err != nil {
 		panic(err)
 	}
-	return &RPCSDK{
+	return &RPCClient{
 		rpcClient: cli,
 	}
 }
 
 // GetValidator
 // 获取validator详细信息
-func (p *RPCSDK) GetValidator(ctx context.Context, address string) (*types.BeanValidator, error) {
+func (cli *RPCClient) GetValidator(ctx context.Context, address string) (*types.BeanValidator, error) {
 	addressBytes, _ := hex.DecodeString(address)
-	resp, err := p.rpcClient.ABCIQuery(ctx, "/v3/node/account", addressBytes)
+	resp, err := cli.rpcClient.ABCIQuery(ctx, "/v3/node/account", addressBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +53,7 @@ func (p *RPCSDK) GetValidator(ctx context.Context, address string) (*types.BeanV
 
 // SetRunfor
 // 设置节点竞选超级节点标识flag 1：参与竞选 2：不参与竞选
-func (p *RPCSDK) SetRunfor(ctx context.Context, genesisPublicKey, genesisPrivateKey string, nodeAddress string, flag uint64) (string, error) {
+func (cli *RPCClient) SetRunfor(ctx context.Context, genesisPublicKey, genesisPrivateKey string, nodeAddress string, flag uint64) (string, error) {
 	var hash string
 	tx := types.NewMgrTx()
 	tx.CreatedAt = uint64(time.Now().Unix())
@@ -61,7 +63,7 @@ func (p *RPCSDK) SetRunfor(ctx context.Context, genesisPublicKey, genesisPrivate
 	}
 	copy(tx.Sender[:], b)
 
-	val, err := p.GetValidator(ctx, tx.Sender.Address().String())
+	val, err := cli.GetValidator(ctx, tx.Sender.Address().String())
 	if err != nil {
 		return hash, errors.Wrap(err, "GetValidator")
 	}
@@ -82,7 +84,7 @@ func (p *RPCSDK) SetRunfor(ctx context.Context, genesisPublicKey, genesisPrivate
 
 	hash = tx.Hash().Hex()
 
-	result, err := p.rpcClient.BroadcastTxCommit(ctx, append(types.TxTagAppMgr, tx.ToBytes()...))
+	result, err := cli.rpcClient.BroadcastTxCommit(ctx, append(types.TxTagAppMgr, tx.ToBytes()...))
 	if err != nil {
 		return hash, err
 	}
@@ -96,9 +98,9 @@ func (p *RPCSDK) SetRunfor(ctx context.Context, genesisPublicKey, genesisPrivate
 	return hash, nil
 }
 
-// SetPower
-// 设置节点的共识投票权power，如果power=0，节点将变成同步节点，共识节点公平power为10
-func (p *RPCSDK) SetPower(ctx context.Context, genesisPublicKey, genesisPrivateKey string, nodeAddress string, power uint64) (string, error) {
+// SetPower 系统维护使用
+// 设置节点的共识投票权power，如果power=0，节点将变成同步节点
+func (cli *RPCClient) SetPower(ctx context.Context, genesisPublicKey, genesisPrivateKey string, nodeAddress string, power uint64) (string, error) {
 	var hash string
 	tx := types.NewMgrTx()
 	tx.CreatedAt = uint64(time.Now().Unix())
@@ -108,7 +110,7 @@ func (p *RPCSDK) SetPower(ctx context.Context, genesisPublicKey, genesisPrivateK
 	}
 	copy(tx.Sender[:], b)
 
-	val, err := p.GetValidator(ctx, tx.Sender.Address().String())
+	val, err := cli.GetValidator(ctx, tx.Sender.Address().String())
 	if err != nil {
 		return hash, errors.Wrap(err, "GetValidator")
 	}
@@ -129,7 +131,7 @@ func (p *RPCSDK) SetPower(ctx context.Context, genesisPublicKey, genesisPrivateK
 
 	hash = tx.Hash().Hex()
 
-	result, err := p.rpcClient.BroadcastTxCommit(ctx, append(types.TxTagAppMgr, tx.ToBytes()...))
+	result, err := cli.rpcClient.BroadcastTxCommit(ctx, append(types.TxTagAppMgr, tx.ToBytes()...))
 	if err != nil {
 		return hash, err
 	}
@@ -143,9 +145,9 @@ func (p *RPCSDK) SetPower(ctx context.Context, genesisPublicKey, genesisPrivateK
 	return hash, nil
 }
 
-// SetGenesis
+// SetGenesis 系统维护使用
 // 转移节点的创世权，调用此接口需慎重，一旦忘记接收者私钥将会丢失创世权
-func (p *RPCSDK) SetGenesis(ctx context.Context, genesisPublicKey, genesisPrivateKey string, nodeAddress string) (string, error) {
+func (cli *RPCClient) SetGenesis(ctx context.Context, genesisPublicKey, genesisPrivateKey string, nodeAddress string) (string, error) {
 	var hash string
 	tx := types.NewMgrTx()
 	tx.CreatedAt = uint64(time.Now().Unix())
@@ -155,7 +157,7 @@ func (p *RPCSDK) SetGenesis(ctx context.Context, genesisPublicKey, genesisPrivat
 	}
 	copy(tx.Sender[:], b)
 
-	val, err := p.GetValidator(ctx, tx.Sender.Address().String())
+	val, err := cli.GetValidator(ctx, tx.Sender.Address().String())
 	if err != nil {
 		return hash, errors.Wrap(err, "GetValidator")
 	}
@@ -176,7 +178,7 @@ func (p *RPCSDK) SetGenesis(ctx context.Context, genesisPublicKey, genesisPrivat
 
 	hash = tx.Hash().Hex()
 
-	result, err := p.rpcClient.BroadcastTxCommit(ctx, append(types.TxTagAppMgr, tx.ToBytes()...))
+	result, err := cli.rpcClient.BroadcastTxCommit(ctx, append(types.TxTagAppMgr, tx.ToBytes()...))
 	if err != nil {
 		return hash, err
 	}
@@ -190,7 +192,8 @@ func (p *RPCSDK) SetGenesis(ctx context.Context, genesisPublicKey, genesisPrivat
 	return hash, nil
 }
 
-func (p *RPCSDK) SetParam(ctx context.Context, genesisPublicKey, genesisPrivateKey string, key string, value string) (string, error) {
+// SetParam 系统维护使用
+func (cli *RPCClient) SetParam(ctx context.Context, genesisPublicKey, genesisPrivateKey string, key string, value string) (string, error) {
 	var hash string
 	tx := types.NewTxParams()
 	tx.CreatedAt = uint64(time.Now().Unix())
@@ -200,7 +203,7 @@ func (p *RPCSDK) SetParam(ctx context.Context, genesisPublicKey, genesisPrivateK
 	}
 	copy(tx.Sender[:], b)
 
-	val, err := p.GetValidator(ctx, tx.Sender.Address().String())
+	val, err := cli.GetValidator(ctx, tx.Sender.Address().String())
 	if err != nil {
 		return hash, errors.Wrap(err, "GetValidator")
 	}
@@ -216,7 +219,7 @@ func (p *RPCSDK) SetParam(ctx context.Context, genesisPublicKey, genesisPrivateK
 
 	hash = tx.Hash().Hex()
 
-	result, err := p.rpcClient.BroadcastTxCommit(ctx, append(types.TxTagAppParams, tx.ToBytes()...))
+	result, err := cli.rpcClient.BroadcastTxCommit(ctx, append(types.TxTagAppParams, tx.ToBytes()...))
 	if err != nil {
 		return hash, err
 	}

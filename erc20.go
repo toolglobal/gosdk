@@ -10,7 +10,8 @@ import (
 )
 
 // ERC20Pay
-func (api *APISDK) ERC20Pay(mode string, senderPubKey, senderPrivKey, contractAddr, receiver,
+// ERC20代币转账，返回交易hash、使用的gas数量、错误信息
+func (cli *APIClient) ERC20Pay(mode string, senderPubKey, senderPriKey, contractAddr, receiver,
 	value string, gasLimit uint64, gasPrice string, memo string) (string, uint64, error) {
 	if !types.ValidAddress(receiver) {
 		return "", 0, errors.New("bad receiver")
@@ -39,15 +40,15 @@ func (api *APISDK) ERC20Pay(mode string, senderPubKey, senderPrivKey, contractAd
 		return "", 0, err
 	}
 
-	tx, _, gasUsed, err := api.InvokeTx(mode, senderPubKey, senderPrivKey, contractAddr,
+	tx, _, gasUsed, err := cli.InvokeTx(mode, senderPubKey, senderPriKey, contractAddr,
 		"0", BytesToHex(bin), gasLimit, gasPrice, memo)
 	return tx, gasUsed, err
 }
 
 // ERC20BalanceOf
 // 查询ERC20代币账户余额
-// 此方法不消耗gas，不上链，但要求sender账户有足够余额
-func (api *APISDK) ERC20BalanceOf(senderPubKey, senderPrivKey, contractAddr, address string) (*big.Int, error) {
+// 此方法不消耗gas，不上链
+func (cli *APIClient) ERC20BalanceOf(senderPubKey, senderPriKey, contractAddr, address string) (*big.Int, error) {
 	balance := new(big.Int)
 	abiIns, err := abi.JSON(strings.NewReader(`[{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"}]`))
 	if err != nil {
@@ -59,7 +60,7 @@ func (api *APISDK) ERC20BalanceOf(senderPubKey, senderPrivKey, contractAddr, add
 		return balance, err
 	}
 
-	data, _, err := api.QueryTx(senderPubKey, senderPrivKey, contractAddr,
+	data, _, err := cli.QueryTx(senderPubKey, senderPriKey, contractAddr,
 		"0", BytesToHex(bin), 100000, "1")
 	if err != nil {
 		return balance, err
