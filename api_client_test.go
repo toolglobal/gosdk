@@ -21,7 +21,7 @@ const (
 )
 
 func TestAPISDK_Payment(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	tx, err := api.Payment(MODE_DEFAULT, DEV_USER_PUBKEY,
 		"7fffe4e426a6772ae8a1c0f2425a90fc6320d23e416fb6d83802889fa846faa2",
 		"0xc8F516fa76868b4C16bA439F3131911828339Ed5", //可填地址
@@ -34,7 +34,7 @@ func TestAPISDK_Payment(t *testing.T) {
 }
 
 func TestAPISDK_DeployTx(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	tx, contractAddress, gasUsed, err := api.DeployTx("", DEV_USER_PUBKEY,
 		DEV_USER_PRIVKEY,
 		"0",
@@ -49,7 +49,7 @@ func TestAPISDK_DeployTx(t *testing.T) {
 }
 
 func TestAPISDK_InvokeTx(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	tx, rets, gasUsed, err := api.InvokeTx("", DEV_USER_PUBKEY,
 		DEV_USER_PRIVKEY,
 		"0x50f95C121D5Ed835ea93584AE7503cC2072E9833",
@@ -65,7 +65,7 @@ func TestAPISDK_InvokeTx(t *testing.T) {
 }
 
 func TestAPISDK_QueryTx(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	tx, rets, err := api.QueryTx(DEV_USER_PUBKEY,
 		DEV_USER_PRIVKEY,
 		"0x50f95C121D5Ed835ea93584AE7503cC2072E9833",
@@ -80,7 +80,7 @@ func TestAPISDK_QueryTx(t *testing.T) {
 }
 
 func TestAPISDK_GetBalance(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	balance, err := api.GetBalance(DEV_USER_ADDRESS)
 	if err != nil {
 		t.Fatal(err)
@@ -89,7 +89,7 @@ func TestAPISDK_GetBalance(t *testing.T) {
 }
 
 func TestAPISDK_GetAccount(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	balance, nonce, err := api.GetAccount(DEV_USER_ADDRESS)
 	if err != nil {
 		t.Fatal(err)
@@ -98,7 +98,7 @@ func TestAPISDK_GetAccount(t *testing.T) {
 }
 
 func TestAPISDK_GetContract(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	balance, nonce, code, suicided, err := api.GetContract("0x50f95C121D5Ed835ea93584AE7503cC2072E9833")
 	if err != nil {
 		t.Fatal(err)
@@ -110,7 +110,7 @@ func TestAPISDK_GetContract(t *testing.T) {
 }
 
 func TestAPISDK_Payments(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	var pays []Operation
 	for i := 0; i < 3; i++ {
 		pays = append(pays, Operation{
@@ -130,7 +130,7 @@ func TestAPISDK_Payments(t *testing.T) {
 }
 
 func TestAPISDK_Exist(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	exist, err := api.Exist("03815a906de2017c7351be33644cd60a6fff9407ce04896b2328944bc4e628abd8")
 	if err != nil {
 		t.Fatal(err)
@@ -150,7 +150,7 @@ func TestAPISDK_ValidAddress(t *testing.T) {
 }
 
 func TestAPISDK_ERC20BalanceOf(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	balance, err := api.ERC20BalanceOf(DEV_USER_PUBKEY,
 		DEV_USER_PRIVKEY,
 		"0xe1066eBcFC8fbD7172886F15F538b63804676A74",
@@ -162,7 +162,7 @@ func TestAPISDK_ERC20BalanceOf(t *testing.T) {
 }
 
 func TestAPISDK_ERC20Pay(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	tx, _gasUsed, err := api.ERC20Pay("", DEV_USER_PUBKEY,
 		DEV_USER_PRIVKEY,
 		"0x8a8eF5E5241C7A3f311aFBF2a9ec154c2568606A",
@@ -280,7 +280,7 @@ func TestAPISDK_MultiSignTx(t *testing.T) {
 	}
 
 	fmt.Println("hash:", tx.Hash())
-	api := NewAPISDK("http://127.0.0.1:8889")
+	api := NewAPIClient("http://127.0.0.1:8889")
 	err = api.SendMultisigEvmTx("", tx)
 	if err != nil {
 		t.Fatal(err)
@@ -308,7 +308,7 @@ func generateAccounts(n int) []account {
 }
 
 func TestAPISDK_BuildEvmTx(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	tx, err := api.BuildEvmTx(DEV_USER_PUBKEY, DEV_USER_PRIVKEY, "0x6e91349995276c98537a4225c30c964F83fD11E3",
 		"1", "", 23000, "1", "gosdk-v1.2.3")
 	if err != nil {
@@ -323,7 +323,7 @@ func TestAPISDK_BuildEvmTx(t *testing.T) {
 }
 
 func TestAPISDK_CheckTx(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 
 	b, err := api.CheckTx("0xb63903ccf97104687c81e4f2f4df76f3d162f119aea6143cc8f9da262ad62bf9")
 	if err != nil {
@@ -333,7 +333,7 @@ func TestAPISDK_CheckTx(t *testing.T) {
 }
 
 func TestAPISDK_CheckTxWithCtx(t *testing.T) {
-	api := NewAPISDK(DEV_API_URL_BASE)
+	api := NewAPIClient(DEV_API_URL_BASE)
 	ctx := context.Background()
 	ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()

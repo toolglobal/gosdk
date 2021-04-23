@@ -15,7 +15,7 @@ var (
 )
 
 func TestRPCSDK_GetValidator(t *testing.T) {
-	sdk := NewRPCSDK("192.168.10.110:26657")
+	sdk := NewRPCClient("192.168.10.110:26657")
 	val, err := sdk.GetValidator(context.Background(), NODE_ADDRESS)
 	fmt.Println(val)
 	if err != nil {
@@ -25,7 +25,7 @@ func TestRPCSDK_GetValidator(t *testing.T) {
 }
 
 func TestRPCSDK_SetRunfor(t *testing.T) {
-	sdk := NewRPCSDK("192.168.10.110:26657")
+	sdk := NewRPCClient("192.168.10.110:26657")
 	hash, err := sdk.SetRunfor(context.Background(), NODE_PUB_KEY, NODE_PRIV_KEY, "lcNeyXdktqjqlsewjz8k7ufmMSLh8Kxqgk0Trd1d8mE=", 1)
 	if err != nil {
 		t.Fatal(err)
@@ -34,7 +34,7 @@ func TestRPCSDK_SetRunfor(t *testing.T) {
 }
 
 func TestRPCSDK_SetPower(t *testing.T) {
-	sdk := NewRPCSDK("192.168.10.110:26657")
+	sdk := NewRPCClient("192.168.10.110:26657")
 	hash, err := sdk.SetPower(context.Background(), NODE_PUB_KEY, NODE_PRIV_KEY, "lcNeyXdktqjqlsewjz8k7ufmMSLh8Kxqgk0Trd1d8mE=", 10)
 	if err != nil {
 		t.Fatal(err)
@@ -43,7 +43,7 @@ func TestRPCSDK_SetPower(t *testing.T) {
 }
 
 func TestRPCSDK_SetParam(t *testing.T) {
-	sdk := NewRPCSDK("192.168.10.110:26657")
+	sdk := NewRPCClient("192.168.10.110:26657")
 	hash, err := sdk.SetParam(context.Background(), NODE_PUB_KEY, NODE_PRIV_KEY, types.KEY_UpgradeHeight, strconv.FormatInt(129860, 10))
 	if err != nil {
 		t.Fatal(err)

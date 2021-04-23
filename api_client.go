@@ -13,13 +13,15 @@ import (
 	"time"
 )
 
-type APISDK struct {
-	baseUrl string
+type APIClient struct {
+	addr string
 }
 
-func NewAPISDK(baseUrl string) *APISDK {
-	return &APISDK{
-		baseUrl: baseUrl,
+// NewAPIClient
+// new mondo api client,addr is mondo api http base url,like http://127.0.0.1:8889
+func NewAPIClient(addr string) *APIClient {
+	return &APIClient{
+		addr: addr,
 	}
 }
 
@@ -42,7 +44,7 @@ func getMode(mode string) int {
 // GetBalance 获取账户余额
 // 输入：账户地址或者公钥
 // 输出：如果账户未上链返回余额0，error为nil；如果error不为空表示出错
-func (m *APISDK) GetBalance(address string) (*big.Int, error) {
+func (cli *APIClient) GetBalance(address string) (*big.Int, error) {
 	balance := new(big.Int)
 	if len(address) > 42 {
 		pub, err := types.HexToPubkey(address)
@@ -56,7 +58,7 @@ func (m *APISDK) GetBalance(address string) (*big.Int, error) {
 		}
 	}
 
-	bal, _, err := m.queryAccount(address)
+	bal, _, err := cli.queryAccount(address)
 	if err != nil {
 		return balance, err
 	}
@@ -66,7 +68,7 @@ func (m *APISDK) GetBalance(address string) (*big.Int, error) {
 
 // Exist 用户是否在链上存在
 // 输入：地址或者公钥
-func (m *APISDK) Exist(address string) (bool, error) {
+func (cli *APIClient) Exist(address string) (bool, error) {
 	var resp struct {
 		IsSuccess bool   `json:"isSuccess"`
 		Message   string `json:"message"`
@@ -80,7 +82,7 @@ func (m *APISDK) Exist(address string) (bool, error) {
 		address = pub.ToAddress().Hex()
 	}
 
-	err := httpc.New(m.baseUrl).Path("/v2/accounts/"+address).Get(&resp, httpc.TypeApplicationJson)
+	err := httpc.New(cli.addr).Path("/v2/accounts/"+address).Get(&resp, httpc.TypeApplicationJson)
 	if err != nil {
 		return false, err
 	}
@@ -92,7 +94,7 @@ func (m *APISDK) Exist(address string) (bool, error) {
 
 // GetNonce
 // 获取账户nonce
-func (m *APISDK) GetNonce(address string) uint64 {
+func (cli *APIClient) GetNonce(address string) uint64 {
 	if len(address) > 42 {
 		pub, err := types.HexToPubkey(address)
 		if err != nil {
@@ -100,12 +102,12 @@ func (m *APISDK) GetNonce(address string) uint64 {
 		}
 		address = pub.ToAddress().Hex()
 	}
-	nonce, _ := m.getNonce(address)
+	nonce, _ := cli.getNonce(address)
 	return nonce
 }
 
-func (m *APISDK) getNonce(address string) (uint64, error) {
-	_, nonce, err := m.queryAccount(address)
+func (cli *APIClient) getNonce(address string) (uint64, error) {
+	_, nonce, err := cli.queryAccount(address)
 	if err != nil {
 		return nonce, err
 	}
@@ -114,11 +116,11 @@ func (m *APISDK) getNonce(address string) (uint64, error) {
 
 // GetAccount
 // 获取账户信息，返回余额、nonce，如果账户未上链，返回余额为0，nonce为0
-func (m *APISDK) GetAccount(address string) (string, uint64, error) {
-	return m.queryAccount(address)
+func (cli *APIClient) GetAccount(address string) (string, uint64, error) {
+	return cli.queryAccount(address)
 }
 
-func (m *APISDK) queryAccount(address string) (string, uint64, error) {
+func (cli *APIClient) queryAccount(address string) (string, uint64, error) {
 	var resp struct {
 		IsSuccess bool   `json:"isSuccess"`
 		Message   string `json:"message"`
@@ -128,7 +130,7 @@ func (m *APISDK) queryAccount(address string) (string, uint64, error) {
 			Nonce   uint64 `json:"nonce"`
 		} `json:"result"`
 	}
-	err := httpc.New(m.baseUrl).Path("/v2/accounts/"+address).Get(&resp, httpc.TypeApplicationJson)
+	err := httpc.New(cli.addr).Path("/v2/accounts/"+address).Get(&resp, httpc.TypeApplicationJson)
 	if err != nil {
 		return "", 0, err
 	}
@@ -145,14 +147,14 @@ func (m *APISDK) queryAccount(address string) (string, uint64, error) {
 // GetContract 获取合约
 // 输入：合约地址
 // 输出：余额、nonce、合约字节码、是否已自杀、错误信息；如果合约不存在，返回错误;如果是普通地址，正确返回；
-func (m *APISDK) GetContract(address string) (*big.Int, uint64, string, bool, error) {
+func (cli *APIClient) GetContract(address string) (*big.Int, uint64, string, bool, error) {
 	if !types.ValidAddress(address) {
 		return new(big.Int), 0, "", false, errors.New("invalid address")
 	}
-	return m.queryContractAccount(address)
+	return cli.queryContractAccount(address)
 }
 
-func (m *APISDK) queryContractAccount(address string) (*big.Int, uint64, string, bool, error) {
+func (cli *APIClient) queryContractAccount(address string) (*big.Int, uint64, string, bool, error) {
 	var resp struct {
 		IsSuccess bool   `json:"isSuccess"`
 		Message   string `json:"message"`
@@ -164,7 +166,7 @@ func (m *APISDK) queryContractAccount(address string) (*big.Int, uint64, string,
 			Suicided bool   `json:"suicided"`
 		} `json:"result"`
 	}
-	err := httpc.New(m.baseUrl).Path("/v2/contract/accounts/"+address).Get(&resp, httpc.TypeApplicationJson)
+	err := httpc.New(cli.addr).Path("/v2/contract/accounts/"+address).Get(&resp, httpc.TypeApplicationJson)
 	if err != nil {
 		return new(big.Int), 0, "", false, err
 	}
@@ -177,10 +179,10 @@ func (m *APISDK) queryContractAccount(address string) (*big.Int, uint64, string,
 
 // Payment 发送签名交易
 // mode:交易模式 默认为commit模式：交易上链后返回 async:异步模式，节点成功接收交易后返回 sync:同步模式，节点对基本参数校验完成后返回
-// senderPubKey:转出方公钥 senderPrivKey:转出方私钥 receiver：接收方公钥或地址 value：转账金额（实际金额*1e8）
+// senderPubKey:转出方公钥 senderPriKey:转出方私钥 receiver：接收方公钥或地址 value：转账金额（实际金额*1e8）
 // gasLimit：gas限额，普通转账21000  gasPrice：建议值1
 // 返回交易hash和错误信息
-func (api *APISDK) Payment(mode string, senderPubKey, senderPrivKey, receiver, value string, gasLimit uint64, gasPrice string, memo string) (string, error) {
+func (cli *APIClient) Payment(mode string, senderPubKey, senderPriKey, receiver, value string, gasLimit uint64, gasPrice string, memo string) (string, error) {
 	var (
 		hash     string
 		err      error
@@ -209,7 +211,7 @@ func (api *APISDK) Payment(mode string, senderPubKey, senderPrivKey, receiver, v
 		tx.Sender.SetBytes(ethcmn.HexToAddress(senderPubKey).Bytes())
 	}
 
-	nonce, err := api.getNonce(tx.Sender.ToAddress().Hex())
+	nonce, err := cli.getNonce(tx.Sender.ToAddress().Hex())
 	if err != nil {
 		return hash, err
 	}
@@ -239,7 +241,7 @@ func (api *APISDK) Payment(mode string, senderPubKey, senderPrivKey, receiver, v
 	tx.Body.Value, _ = new(big.Int).SetString(signedTx.Body.Value, 10)
 	tx.Body.Load, _ = hexutil.Decode(signedTx.Body.Load)
 	tx.Body.Memo = []byte(signedTx.Body.Memo)
-	b, err := tx.Sign(senderPrivKey)
+	b, err := tx.Sign(senderPriKey)
 	if err != nil {
 		return hash, err
 	}
@@ -259,7 +261,7 @@ func (api *APISDK) Payment(mode string, senderPubKey, senderPrivKey, receiver, v
 			Tx      string      `json:"tx"`
 		} `json:"result"`
 	}
-	if err := httpc.New(api.baseUrl).Path("/v2/contract/transactions").
+	if err := httpc.New(cli.addr).Path("/v2/contract/transactions").
 		ContentType(httpc.TypeApplicationJson).
 		Body(&signedTx).Post(&resp); err != nil {
 		return hash, err
@@ -272,7 +274,7 @@ func (api *APISDK) Payment(mode string, senderPubKey, senderPrivKey, receiver, v
 
 // Payments 发送批量交易 1vN
 // gasLimit:len(pays)*21000
-func (api *APISDK) Payments(mode string, senderPubKey, senderPrivKey string, pays []Operation, gasLimit uint64, gasPrice string, memo string) (string, error) {
+func (cli *APIClient) Payments(mode string, senderPubKey, senderPriKey string, pays []Operation, gasLimit uint64, gasPrice string, memo string) (string, error) {
 	var (
 		hash     string
 		err      error
@@ -298,7 +300,7 @@ func (api *APISDK) Payments(mode string, senderPubKey, senderPrivKey string, pay
 		tx.Sender.SetBytes(ethcmn.HexToAddress(senderPubKey).Bytes())
 	}
 
-	nonce, err := api.getNonce(tx.Sender.ToAddress().Hex())
+	nonce, err := cli.getNonce(tx.Sender.ToAddress().Hex())
 	if err != nil {
 		return hash, err
 	}
@@ -338,7 +340,7 @@ func (api *APISDK) Payments(mode string, senderPubKey, senderPrivKey string, pay
 	}
 
 	tx.Memo = []byte(signedTx.Memo)
-	b, err := tx.Sign(senderPrivKey)
+	b, err := tx.Sign(senderPriKey)
 	if err != nil {
 		return hash, err
 	}
@@ -363,7 +365,7 @@ func (api *APISDK) Payments(mode string, senderPubKey, senderPrivKey string, pay
 			Tx      string      `json:"tx"`
 		} `json:"result"`
 	}
-	if err := httpc.New(api.baseUrl).Path("/v2/transactions").
+	if err := httpc.New(cli.addr).Path("/v2/transactions").
 		ContentType(httpc.TypeApplicationJson).
 		Body(&signedTx).Post(&resp); err != nil {
 		return hash, err
@@ -374,34 +376,10 @@ func (api *APISDK) Payments(mode string, senderPubKey, senderPrivKey string, pay
 	return hash, nil
 }
 
-// GenKey 生成mondo链格式的账户
-// 返回：公钥，地址，私钥
-func (api *APISDK) GenKey() (string, string, string, error) {
-	privkey, err := crypto.GenerateKey()
-	if err != nil {
-		return "", "", "", err
-	}
-
-	buff := make([]byte, 32)
-	copy(buff[32-len(privkey.D.Bytes()):], privkey.D.Bytes())
-	return ethcmn.Bytes2Hex(crypto.CompressPubkey(&privkey.PublicKey)),
-		crypto.PubkeyToAddress(privkey.PublicKey).String(),
-		ethcmn.Bytes2Hex(buff),
-		nil
-}
-
-func (m *APISDK) ValidAddress(address string) bool {
-	return types.ValidAddress(address)
-}
-
-func (m *APISDK) ValidPublicKey(publicKey string) bool {
-	return types.ValidPublicKey(publicKey)
-}
-
 // DeployTx 部署合约
 // 返回交易hash，合约地址，gas消耗,错误信息
 // 大多数错误evm错误都是gas不足导致的，排查问题时首先提高gasLimit
-func (api *APISDK) DeployTx(mode string, senderPubKey, senderPrivKey,
+func (cli *APIClient) DeployTx(mode string, senderPubKey, senderPriKey,
 	value string, load string, gasLimit uint64, gasPrice string, memo string) (string, string, uint64, error) {
 	var (
 		hash     string
@@ -428,7 +406,7 @@ func (api *APISDK) DeployTx(mode string, senderPubKey, senderPrivKey,
 		tx.Sender.SetBytes(ethcmn.HexToAddress(senderPubKey).Bytes())
 	}
 
-	nonce, err := api.getNonce(tx.Sender.ToAddress().Hex())
+	nonce, err := cli.getNonce(tx.Sender.ToAddress().Hex())
 	if err != nil {
 		return hash, "", 0, err
 	}
@@ -460,7 +438,7 @@ func (api *APISDK) DeployTx(mode string, senderPubKey, senderPrivKey,
 	tx.Body.Value, _ = new(big.Int).SetString(signedTx.Body.Value, 10)
 	tx.Body.Load = HexToBytes(signedTx.Body.Load)
 	tx.Body.Memo = []byte(signedTx.Body.Memo)
-	b, err := tx.Sign(senderPrivKey)
+	b, err := tx.Sign(senderPriKey)
 	if err != nil {
 		return hash, contractAddr, 0, err
 	}
@@ -480,7 +458,7 @@ func (api *APISDK) DeployTx(mode string, senderPubKey, senderPrivKey,
 			Tx      string      `json:"tx"`
 		} `json:"result"`
 	}
-	if err := httpc.New(api.baseUrl).Path("/v2/contract/transactions").
+	if err := httpc.New(cli.addr).Path("/v2/contract/transactions").
 		ContentType(httpc.TypeApplicationJson).
 		Body(&signedTx).Post(&resp); err != nil {
 		return hash, contractAddr, 0, err
@@ -494,7 +472,7 @@ func (api *APISDK) DeployTx(mode string, senderPubKey, senderPrivKey,
 
 // InvokeTx 调用合约
 // 返回 交易hash，合约执行返回字节码，gas消耗，错误信息
-func (api *APISDK) InvokeTx(mode string, senderPubKey, senderPrivKey, receiver, value string, load string,
+func (cli *APIClient) InvokeTx(mode string, senderPubKey, senderPriKey, receiver, value string, load string,
 	gasLimit uint64, gasPrice string, memo string) (string, string, uint64, error) {
 	var (
 		hash     string
@@ -521,7 +499,7 @@ func (api *APISDK) InvokeTx(mode string, senderPubKey, senderPrivKey, receiver, 
 		tx.Sender.SetBytes(ethcmn.HexToAddress(senderPubKey).Bytes())
 	}
 
-	nonce, err := api.getNonce(tx.Sender.ToAddress().Hex())
+	nonce, err := cli.getNonce(tx.Sender.ToAddress().Hex())
 	if err != nil {
 		return hash, "", 0, err
 	}
@@ -551,7 +529,7 @@ func (api *APISDK) InvokeTx(mode string, senderPubKey, senderPrivKey, receiver, 
 	tx.Body.Value, _ = new(big.Int).SetString(signedTx.Body.Value, 10)
 	tx.Body.Load = HexToBytes(signedTx.Body.Load)
 	tx.Body.Memo = []byte(signedTx.Body.Memo)
-	b, err := tx.Sign(senderPrivKey)
+	b, err := tx.Sign(senderPriKey)
 	if err != nil {
 		return hash, "", 0, err
 	}
@@ -571,7 +549,7 @@ func (api *APISDK) InvokeTx(mode string, senderPubKey, senderPrivKey, receiver, 
 			Tx      string      `json:"tx"`
 		} `json:"result"`
 	}
-	if err := httpc.New(api.baseUrl).Path("/v2/contract/transactions").
+	if err := httpc.New(cli.addr).Path("/v2/contract/transactions").
 		ContentType(httpc.TypeApplicationJson).
 		Body(&signedTx).Post(&resp); err != nil {
 		return hash, "", 0, err
@@ -588,7 +566,7 @@ func (api *APISDK) InvokeTx(mode string, senderPubKey, senderPrivKey, receiver, 
 // 用于估算gas消耗或者调用合约的只读方法查数据
 // 只在本节点evm内查询，不形成交易，不上链；在不同的节点查询结果可能不一致（节点高度不一致）；
 // 返回 合约执行返回字节码,gas消耗，错误信息
-func (api *APISDK) QueryTx(senderPubKey, senderPrivKey, receiver, value string, load string, gasLimit uint64, gasPrice string) (string, uint64, error) {
+func (cli *APIClient) QueryTx(senderPubKey, senderPriKey, receiver, value string, load string, gasLimit uint64, gasPrice string) (string, uint64, error) {
 	var (
 		err      error
 		tx       = types.NewTxEvm()
@@ -634,7 +612,7 @@ func (api *APISDK) QueryTx(senderPubKey, senderPrivKey, receiver, value string, 
 	tx.Body.Value, _ = new(big.Int).SetString(signedTx.Body.Value, 10)
 	tx.Body.Load = HexToBytes(signedTx.Body.Load)
 	tx.Body.Memo = []byte(signedTx.Body.Memo)
-	b, err := tx.Sign(senderPrivKey)
+	b, err := tx.Sign(senderPriKey)
 	if err != nil {
 		return "", 0, err
 	}
@@ -651,7 +629,7 @@ func (api *APISDK) QueryTx(senderPubKey, senderPrivKey, receiver, value string, 
 			GasUsed uint64 `json:"gasUsed"` // 消耗的gas
 		} `json:"result"`
 	}
-	if err := httpc.New(api.baseUrl).Path("/v2/contract/query").
+	if err := httpc.New(cli.addr).Path("/v2/contract/query").
 		ContentType(httpc.TypeApplicationJson).
 		Body(&signedTx).Post(&resp); err != nil {
 		return "", 0, err
@@ -669,7 +647,7 @@ func (api *APISDK) QueryTx(senderPubKey, senderPrivKey, receiver, value string, 
 }
 
 // BuildEvmTx 生成一个EVM交易
-func (api *APISDK) BuildEvmTx(senderPubKey, senderPrivKey, receiver, value string, load string,
+func (cli *APIClient) BuildEvmTx(senderPubKey, senderPriKey, receiver, value string, load string,
 	gasLimit uint64, gasPrice string, memo string) (*types.TxEvm, error) {
 
 	var tx = types.NewTxEvm()
@@ -688,7 +666,7 @@ func (api *APISDK) BuildEvmTx(senderPubKey, senderPrivKey, receiver, value strin
 		tx.Sender.SetBytes(ethcmn.HexToAddress(senderPubKey).Bytes())
 	}
 
-	nonce, err := api.getNonce(tx.Sender.ToAddress().Hex())
+	nonce, err := cli.getNonce(tx.Sender.ToAddress().Hex())
 	if err != nil {
 		return nil, err
 	}
@@ -711,7 +689,7 @@ func (api *APISDK) BuildEvmTx(senderPubKey, senderPrivKey, receiver, value strin
 	tx.Body.Value, _ = new(big.Int).SetString(value, 10)
 	tx.Body.Load = HexToBytes(load)
 	tx.Body.Memo = []byte(memo)
-	b, err := tx.Sign(senderPrivKey)
+	b, err := tx.Sign(senderPriKey)
 	if err != nil {
 		return nil, err
 	}
@@ -720,7 +698,7 @@ func (api *APISDK) BuildEvmTx(senderPubKey, senderPrivKey, receiver, value strin
 }
 
 // SendEvmTx 通过API发送EVM Tx
-func (api *APISDK) SendEvmTx(mode string, tx *types.TxEvm) error {
+func (cli *APIClient) SendEvmTx(mode string, tx *types.TxEvm) error {
 	var signedTx SignedEvmTx
 
 	signedTx.Mode = getMode(mode)
@@ -746,7 +724,7 @@ func (api *APISDK) SendEvmTx(mode string, tx *types.TxEvm) error {
 			Tx      string      `json:"tx"`
 		} `json:"result"`
 	}
-	if err := httpc.New(api.baseUrl).Path("/v2/contract/transactions").
+	if err := httpc.New(cli.addr).Path("/v2/contract/transactions").
 		ContentType(httpc.TypeApplicationJson).
 		Body(&signedTx).Post(&resp); err != nil {
 		return err
@@ -760,11 +738,11 @@ func (api *APISDK) SendEvmTx(mode string, tx *types.TxEvm) error {
 }
 
 // CheckTx 检查交易是否已上链,并处理成功
-func (api *APISDK) CheckTx(hash string) (bool, error) {
+func (cli *APIClient) CheckTx(hash string) (bool, error) {
 	if hash == "" {
 		return false, errors.New("error hash")
 	}
-	tx, err := api.V3GetTransaction(hash)
+	tx, err := cli.V3GetTransaction(hash)
 	if err != nil || tx == nil {
 		return false, err
 	}
@@ -775,7 +753,7 @@ func (api *APISDK) CheckTx(hash string) (bool, error) {
 }
 
 // CheckTxWithCtx 检查交易是否已上链，并处理成功.ctx应待deadline
-func (api *APISDK) CheckTxWithCtx(ctx context.Context, hash string) (bool, error) {
+func (cli *APIClient) CheckTxWithCtx(ctx context.Context, hash string) (bool, error) {
 	if hash == "" {
 		return false, errors.New("error hash")
 	}
@@ -784,7 +762,7 @@ func (api *APISDK) CheckTxWithCtx(ctx context.Context, hash string) (bool, error
 		case <-ctx.Done():
 			return false, errors.New("canceled")
 		default:
-			tx, err := api.V3GetTransaction(hash)
+			tx, err := cli.V3GetTransaction(hash)
 			if err != nil || tx == nil {
 				continue
 			}
@@ -796,7 +774,8 @@ func (api *APISDK) CheckTxWithCtx(ctx context.Context, hash string) (bool, error
 	}
 }
 
-func (api *APISDK) SendMultisigEvmTx(mode string, tx *types.MultisigEvmTx) error {
+// SendMultisigEvmTx 发送多签交易
+func (cli *APIClient) SendMultisigEvmTx(mode string, tx *types.MultisigEvmTx) error {
 	var signedTx SignedMultisigEvmTx
 
 	signedTx.Mode = getMode(mode)
@@ -830,7 +809,7 @@ func (api *APISDK) SendMultisigEvmTx(mode string, tx *types.MultisigEvmTx) error
 			Tx      string      `json:"tx"`
 		} `json:"result"`
 	}
-	if err := httpc.New(api.baseUrl).Path("/v2/contract/multisigTransactions").
+	if err := httpc.New(cli.addr).Path("/v2/contract/multisigTransactions").
 		ContentType(httpc.TypeApplicationJson).
 		Body(&signedTx).Post(&resp); err != nil {
 		return err
