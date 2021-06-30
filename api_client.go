@@ -3,11 +3,11 @@ package gosdk
 import (
 	"context"
 	"errors"
+	"github.com/axengine/gosdk/types"
 	"github.com/axengine/httpc"
 	ethcmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/wolot/gosdk/types"
 	"math/big"
 	"strings"
 	"time"

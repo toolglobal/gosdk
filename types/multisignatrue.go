@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/axengine/gosdk/types/bitarray"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/wolot/gosdk/types/bitarray"
 )
 
 // Multisignature is used to represent the signature object used in the multisigs.

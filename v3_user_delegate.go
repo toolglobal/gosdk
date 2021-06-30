@@ -3,9 +3,9 @@ package gosdk
 import (
 	"encoding/hex"
 	"errors"
+	"github.com/axengine/gosdk/types"
 	"github.com/axengine/httpc"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/wolot/gosdk/types"
 	"math/big"
 	"time"
 )

@@ -3,7 +3,7 @@ package gosdk
 import (
 	"context"
 	"fmt"
-	"github.com/wolot/gosdk/types"
+	"github.com/axengine/gosdk/types"
 	"strconv"
 	"testing"
 )

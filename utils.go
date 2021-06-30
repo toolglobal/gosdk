@@ -2,9 +2,9 @@ package gosdk
 
 import (
 	"encoding/hex"
+	"github.com/axengine/gosdk/types"
 	ethcmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/wolot/gosdk/types"
 	"strings"
 )
 

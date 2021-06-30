@@ -1,10 +1,10 @@
 package gosdk
 
 import (
+	"github.com/axengine/gosdk/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
-	"github.com/wolot/gosdk/types"
 	"math/big"
 	"strings"
 )

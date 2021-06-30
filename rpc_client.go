@@ -6,10 +6,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/axengine/gosdk/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/pkg/errors"
 	"github.com/tendermint/tendermint/rpc/client/http"
-	"github.com/wolot/gosdk/types"
 	"time"
 )
 

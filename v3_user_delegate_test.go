@@ -1,7 +1,7 @@
 package gosdk
 
 import (
-	"github.com/wolot/gosdk/types"
+	"github.com/axengine/gosdk/types"
 	"testing"
 )
 
