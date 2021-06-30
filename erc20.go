@@ -49,26 +49,26 @@ func (cli *APIClient) ERC20Pay(mode string, senderPubKey, senderPriKey, contract
 // 查询ERC20代币账户余额
 // 此方法不消耗gas，不上链
 func (cli *APIClient) ERC20BalanceOf(senderPubKey, senderPriKey, contractAddr, address string) (*big.Int, error) {
-	balance := new(big.Int)
 	abiIns, err := abi.JSON(strings.NewReader(`[{"constant":true,"inputs":[{"name":"_owner","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"}]`))
 	if err != nil {
-		return balance, err
+		return nil, err
 	}
 
 	bin, err := abiIns.Pack("balanceOf", common.HexToAddress(address))
 	if err != nil {
-		return balance, err
+		return nil, err
 	}
 
 	data, _, err := cli.QueryTx(senderPubKey, senderPriKey, contractAddr,
 		"0", BytesToHex(bin), 100000, "1")
 	if err != nil {
-		return balance, err
+		return nil, err
 	}
 
-	if err := abiIns.Unpack(&balance, "balanceOf", HexToBytes(data)); err != nil {
-		return balance, err
+	results, err := abiIns.Unpack("balanceOf", HexToBytes(data))
+	if err != nil {
+		return nil, err
 	}
 
-	return balance, err
+	return results[0].(*big.Int), err
 }
