@@ -7,7 +7,7 @@ import (
 	ethcmn "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/wolot/gosdk/types"
+	"github.com/toolglobal/gosdk/types"
 	"math/big"
 	"strings"
 	"time"
