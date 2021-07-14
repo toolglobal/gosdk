@@ -52,39 +52,3 @@ type V3Payment struct {
 	Value     string    `db:"value" json:"value"`
 	CreatedAt time.Time `db:"createdAt" json:"createdAt"`
 }
-
-type BeanValidator struct {
-	Address    string `json:"address"`    // 节点公钥
-	Nonce      uint64 `json:"nonce"`      // nonce
-	Power      uint64 `json:"power"`      // 投票权
-	Genesis    bool   `json:"genesis"`    // 是否是创世节点
-	RunFor     bool   `json:"runFor"`     // 参与竞选
-	Balance    string `json:"balance"`    // 余额（累积收益）
-	Profit     string `json:"-"`          // 本轮收益
-	Mortgaged  string `json:"mortgaged"`  // 已抵押
-	ToMortgage string `json:"toMortgage"` // 待抵押
-	Redeem     bool   `json:"redeem"`     // 待赎回
-	Voters     int    `json:"voters"`     // 投票人数
-	Voted      string `json:"voted"`      // 选民贡献
-}
-
-type BeanVoter struct {
-	Address    string `json:"address"`    // 选民地址
-	Balance    string `json:"balance"`    // 累积收益余额
-	Validator  string `json:"validator"`  // 节点地址
-	Mortgaged  string `json:"mortgaged"`  // 已抵押
-	ToMortgage string `json:"toMortgage"` // 待抵押
-	Burned     string `json:"burned"`     // 已燃烧
-	Redeem     bool   `json:"redeem"`     // 赎回标志
-}
-
-type BeanVots struct {
-	Address string    `json:"address"` // 节点公钥
-	Voted   string    `json:"voted"`   // 选民贡献
-	Voters  []BeanVot `json:"voters"`  // 选民列表
-}
-
-type BeanVot struct {
-	Address string `json:"address"` // 选民地址
-	Amount  string `json:"amount"`  // 投票金额
-}
